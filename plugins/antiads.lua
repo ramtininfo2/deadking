@@ -1,8 +1,8 @@
 local function run(msg)   
     local data = load_data(_config.moderation.data)   
-     if data[tostring(msg.to.id)]['settings']['lock_adslink'] == 'yes' then
+     if data[tostring(msg.to.id)]['settings']['lock_ads'] == 'yes' then
      if not is_momod(msg) then
-    send_large_msg(get_receiver(msg), "AdsLink is not allowed here!")
+    send_large_msg(get_receiver(msg), "Ads is not allowed here!")
     chat_del_user('chat#id'..msg.to.id, 'user#id'..msg.from.id, ok_cb, true)
     local msgads = 'ForbiddenAdText'
     local receiver = msg.to.id

@@ -43,6 +43,12 @@ local function check_member_realm_add(cb_extra, success, result)
         group_type = 'Realm',
         settings = {
           set_name = string.gsub(msg.to.print_name, '_', ' '),
+          lock_emoji = 'no',
+          lock_join = 'no',
+          lock_media = 'no',
+          lock_sticker = 'no',
+          lock_ads = "no",
+          lock_bots = "yes",
           lock_name = 'yes',
           lock_photo = 'no',
           lock_member = 'no',
@@ -56,6 +62,7 @@ local function check_member_realm_add(cb_extra, success, result)
         save_data(_config.moderation.data, data)
       end
       data[tostring(realms)][tostring(msg.to.id)] = msg.to.id
+      data[tostring(msg.to.id)]['set_owner'] = nil
       save_data(_config.moderation.data, data)
       return send_large_msg(receiver, 'Realm has been added!')
     end
@@ -75,6 +82,12 @@ function check_member_group(cb_extra, success, result)
         set_owner = member_id ,
         settings = {
           set_name = string.gsub(msg.to.print_name, '_', ' '),
+          lock_emoji = 'no',
+          lock_join = 'no',
+          lock_media = 'no',
+          lock_sticker = 'no',
+          lock_ads = "no",
+          lock_bots = "yes",
           lock_name = 'yes',
           lock_photo = 'no',
           lock_member = 'no',
@@ -88,6 +101,7 @@ function check_member_group(cb_extra, success, result)
         save_data(_config.moderation.data, data)
       end
       data[tostring(groups)][tostring(msg.to.id)] = msg.to.id
+      data[tostring(msg.to.id)]['set_owner'] = nil
       save_data(_config.moderation.data, data)
       return send_large_msg(receiver, 'You have been promoted as the owner.')
     end
@@ -107,6 +121,12 @@ local function check_member_modadd(cb_extra, success, result)
         set_owner = member_id ,
         settings = {
           set_name = string.gsub(msg.to.print_name, '_', ' '),
+          lock_ads = 'yes',
+          lock_emoji = 'no',
+          lock_join = 'no',
+          lock_media = 'no',
+          lock_sticker = 'no',
+          lock_bots = "yes",
           lock_name = 'yes',
           lock_photo = 'no',
           lock_member = 'no',
@@ -120,8 +140,9 @@ local function check_member_modadd(cb_extra, success, result)
         save_data(_config.moderation.data, data)
       end
       data[tostring(groups)][tostring(msg.to.id)] = msg.to.id
+      data[tostring(msg.to.id)]['set_owner'] = nil
       save_data(_config.moderation.data, data)
-      return send_large_msg(receiver, 'Group is added and you have been promoted as the owner ')
+      return send_large_msg(receiver, 'Group has been added')
     end
   end
 end
@@ -183,19 +204,31 @@ local function check_member_modrem(cb_extra, success, result)
 end
 --End Check Member
 local function show_group_settingsmod(msg, data, target)
- 	if not is_momod(msg) then
-    	return "For moderators only!"
+ 	if is_realm(msg) then
+    	return 'This here is realm'
   	end
+local function get_group_type(msg)
+  local data = load_data(_config.moderation.data)
+  if data[tostring(msg.to.id)] then
+    if not data[tostring(msg.to.id)]['group_type'] then
+     return 'No group type available.'
+    end
+     local group_type = data[tostring(msg.to.id)]['group_type']
+     return group_type
+  else 
+     return 'Chat type not found.'
+  end 
+end
   	local data = load_data(_config.moderation.data)
     if data[tostring(msg.to.id)] then
      	if data[tostring(msg.to.id)]['settings']['flood_msg_max'] then
         	NUM_MSG_MAX = tonumber(data[tostring(msg.to.id)]['settings']['flood_msg_max'])
         	print('custom'..NUM_MSG_MAX)
       	else 
-        	NUM_MSG_MAX = 5
+        	NUM_MSG_MAX = 4
       	end
     end
-    local bots_protection = "Yes"
+    local bots_protection = "yes"
     if data[tostring(msg.to.id)]['settings']['lock_bots'] then
     	bots_protection = data[tostring(msg.to.id)]['settings']['lock_bots']
    	end
@@ -203,8 +236,28 @@ local function show_group_settingsmod(msg, data, target)
     if data[tostring(msg.to.id)]['settings']['leave_ban'] then
     	leave_ban = data[tostring(msg.to.id)]['settings']['leave_ban']
    	end
+   	local lock_ads = "yes"
+    if data[tostring(msg.to.id)]['settings']['lock_ads'] then
+    	lock_ads = data[tostring(msg.to.id)]['settings']['lock_ads']
+   	end
+   	local lock_media = "no"
+    if data[tostring(msg.to.id)]['settings']['lock_media'] then
+    	lock_media = data[tostring(msg.to.id)]['settings']['lock_media']
+   	end
+   	local lock_emoji = "no"
+    if data[tostring(msg.to.id)]['settings']['lock_emoji'] then
+    	lock_emoji = data[tostring(msg.to.id)]['settings']['lock_emoji']
+   	end
+   	local lock_join = "no"
+    if data[tostring(msg.to.id)]['settings']['lock_join'] then
+    	lock_join = data[tostring(msg.to.id)]['settings']['lock_join']
+   	end
+   	local lock_sticker = "no"
+    if data[tostring(msg.to.id)]['settings']['lock_sticker'] then
+    	lock_sticker = data[tostring(msg.to.id)]['settings']['lock_sticker']
+   	end
   local settings = data[tostring(target)]['settings']
-  local text = "Group settings:\nLock group name : "..settings.lock_name.."\nLock group photo : "..settings.lock_photo.."\nLock group member : "..settings.lock_member.."\nLock group leave : "..leave_ban.."\nflood sensitivity : "..NUM_MSG_MAX.."\nBot protection : "..bots_protection--"\nPublic: "..public
+  local text = "[ " ..string.gsub(msg.to.print_name, "_", " ").." ] /settings : \n#Group id : ( "..msg.to.id.. " ) \n#Your id : ( " ..msg.from.id.. " ) \n===============================\n~Lock group /name : #"..settings.lock_name.."\n~Lock group /photo : #"..settings.lock_photo.."\n~Lock group /member : #"..settings.lock_member.."\n~Lock group /join_with_link : #"..settings.lock_join.."\n~Lock group /leave : #"..leave_ban.."\n~Lock group /ADS : #"..settings.lock_ads.."\n~Lock group /media : #"..settings.lock_media.."\n~Lock group /sticker : #"..settings.lock_sticker.."\n~Lock group /emoji : #"..settings.lock_emoji.."\n~Lock group BOTS : "..bots_protection.."\n~Group number /flood : #"..NUM_MSG_MAX.."\n~Group /type : #"..get_group_type(msg)..
   return text
 end
 

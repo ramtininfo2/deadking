@@ -27,7 +27,7 @@ your id [ایدی شما]
 
 !feedback فرستادن نظرات به سودو ربات
 
-!deadlink معرفی ربات و شناخت سودو ها
+!deadking معرفی ربات و شناخت سودو ها
 
 !info(or by reply)مشخصات
 
@@ -77,7 +77,6 @@ group type نوع گروه
 !feedback ارسال نظر به سودو(ها(
 
 !deadking معرفی ربات و شناخت سودو ها
-
 
 !info(or by reply)مشخصات
 

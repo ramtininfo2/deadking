@@ -4,14 +4,12 @@ https = require "ssl.https"
 ltn12 = require "ltn12"
 serpent = require "serpent"
 feedparser = require "feedparser"
-
 json = (loadfile "./libs/JSON.lua")()
 mimetype = (loadfile "./libs/mimetype.lua")()
 redis = (loadfile "./libs/redis.lua")()
 JSON = (loadfile "./libs/dkjson.lua")()
 
 http.TIMEOUT = 10
-
 
 function get_receiver(msg)
   if msg.to.type == 'user' then

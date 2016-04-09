@@ -11,7 +11,6 @@ local function pre_process(msg)
       if banned or is_gbanned(user_id) then -- Check it with redis
       print('User is banned!')
       local name = user_print_name(msg.from)
-      savelog(msg.to.id, name.." ["..msg.from.id.."] is banned and kicked ! ")-- Save to logs
       kick_user(user_id, msg.to.id)
       end
     end
@@ -20,60 +19,57 @@ local function pre_process(msg)
       local user_id = msg.action.user.id
       print('Checking invited user '..user_id)
       local banned = is_banned(user_id, msg.to.id)
-      if banned or is_gbanned(user_id) then -- Check it with redis
+      if banned or is_gbanned(user_id) then
         print('User is banned!')
         local name = user_print_name(msg.from)
-        savelog(msg.to.id, name.." ["..msg.from.id.."] added a banned user >"..msg.action.user.id)-- Save to logs
+         savelog(msg.to.id, name.." ["..msg.from.id.."] added a banned user >"..msg.action.user.id)-- Save to logs
         kick_user(user_id, msg.to.id)
         local banhash = 'addedbanuser:'..msg.to.id..':'..msg.from.id
         redis:incr(banhash)
         local banhash = 'addedbanuser:'..msg.to.id..':'..msg.from.id
         local banaddredis = redis:get(banhash) 
         if banaddredis then 
-          if tonumber(banaddredis) == 4 and not is_owner(msg) then 
+          if tonumber(banaddredis) == 2 and not is_momod(msg) then 
             kick_user(msg.from.id, msg.to.id)-- Kick user who adds ban ppl more than 3 times
           end
-          if tonumber(banaddredis) ==  8 and not is_owner(msg) then 
+          if tonumber(banaddredis) == 3 and not is_momod(msg) then 
             ban_user(msg.from.id, msg.to.id)-- Kick user who adds ban ppl more than 7 times
             local banhash = 'addedbanuser:'..msg.to.id..':'..msg.from.id
             redis:set(banhash, 0)-- Reset the Counter
           end
         end
       end
-     if data[tostring(msg.to.id)] then
-       if data[tostring(msg.to.id)]['settings'] then
-         if data[tostring(msg.to.id)]['settings']['lock_bots'] then 
-           bots_protection = data[tostring(msg.to.id)]['settings']['lock_bots']
-          end
-        end
+      local bots_protection = "Yes"
+      local data = load_data(_config.moderation.data)
+      if data[tostring(msg.to.id)]['settings']['lock_bots'] then
+        bots_protection = data[tostring(msg.to.id)]['settings']['lock_bots']
       end
     if msg.action.user.username ~= nil then
-      if string.sub(msg.action.user.username:lower(), -3) == 'bot' and not is_momod(msg) and bots_protection == "yes" then --- Will kick bots added by normal users
+      if string.sub(msg.action.user.username:lower(), -3) == 'bot' and not is_admin(msg) and bots_protection == "yes" then --- Will kick bots added by normal users
         local name = user_print_name(msg.from)
-          savelog(msg.to.id, name.." ["..msg.from.id.."] added a bot > @".. msg.action.user.username)-- Save to logs
           kick_user(msg.action.user.id, msg.to.id)
+          ban_user(msg.action.user.id, msg.to.id)
       end
     end
   end
     -- No further checks
-  return msg
+  return 
   end
   -- banned user is talking !
   if msg.to.type == 'chat' then
     local data = load_data(_config.moderation.data)
     local group = msg.to.id
     local texttext = 'groups'
-    --if not data[tostring(texttext)][tostring(msg.to.id)] and not is_realm(msg) then -- Check if this group is one of my groups or not
-    --chat_del_user('chat#id'..msg.to.id,'user#id'..our_id,ok_cb,false)
-    --return 
-    --end
+    if not data[tostring(texttext)][tostring(msg.to.id)] and not is_sudo(msg) and not is_realm(msg) then -- Check if this group is one of my groups or not
+    chat_del_user('chat#id'..msg.to.id,'user#id'..our_id,ok_cb,false)
+    block_user("user#id"..msg.from.id,ok_cb,false)
+    return 
+    end
     local user_id = msg.from.id
     local chat_id = msg.to.id
     local banned = is_banned(user_id, chat_id)
-    if banned or is_gbanned(user_id) then -- Check it with redis
-      print('Banned user talking!')
+    if banned or is_gbanned(user_id) then
       local name = user_print_name(msg.from)
-      savelog(msg.to.id, name.." ["..msg.from.id.."] banned user is talking !")-- Save to logs
       kick_user(user_id, chat_id)
       msg.text = ''
     end
@@ -103,18 +99,18 @@ local function kick_ban_res(extra, success, result)
         if is_momod2(member_id, chat_id) and not is_admin2(sender) then
           return send_large_msg(receiver, "You can't ban mods/owner/admins")
         end
-        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] banned')
+        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] of this group has been banned')
         return ban_user(member_id, chat_id)
       elseif get_cmd == 'unban' then
-        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] unbanned')
+        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] of this group has been un-banned')
         local hash =  'banned:'..chat_id
         redis:srem(hash, member_id)
         return 'User '..user_id..' unbanned'
       elseif get_cmd == 'banall' then
-        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] globally banned')
+        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] banned worldwide')
         return banall_user(member_id, chat_id)
       elseif get_cmd == 'unbanall' then
-        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] un-globally banned')
+        send_large_msg(receiver, 'User @'..member..' ['..member_id..'] un-banned worldwide')
         return unbanall_user(member_id, chat_id)
       end
 end
@@ -131,15 +127,16 @@ local function run(msg, matches)
     elseif matches[1]:lower() == 'id' then
       local name = user_print_name(msg.from)
       savelog(msg.to.id, name.." ["..msg.from.id.."] used /id ")
-      return ""..string.gsub(msg.to.print_name, "_", " ").." ID: [ #"..msg.to.id.."]"
+      return "" ..string.gsub(msg.to.print_name, "_", " ").. "\nID chat : [ "..msg.to.id.." ] "
     end
   end
   if matches[1]:lower() == 'kickme' then-- /kickme
   local receiver = get_receiver(msg)
     if msg.to.type == 'chat' then
       local name = user_print_name(msg.from)
-      savelog(msg.to.id, name.." ["..msg.from.id.."] left using kickme ")-- Save to logs
+      send_large_msg(receiver, 'According to your request, you will be removed from the group')
       chat_del_user("chat#id"..msg.to.id, "user#id"..msg.from.id, ok_cb, false)
+      savelog(msg.to.id, name.." ["..msg.from.id.."] left using kickme ")-- Save to logs
     end
   end
 
@@ -269,7 +266,7 @@ end
          	return false 
         end
         	banall_user(targetuser)
-       		return 'User ['..user_id..' ] globally banned'
+       		return 'User ['..user_id..' ] banned worldwide'
       else
 	local cbres_extra = {
 		chat_id = msg.to.id,
@@ -289,7 +286,7 @@ end
           	return false 
         end
        		unbanall_user(user_id)
-        	return 'User ['..user_id..' ] removed from global ban list'
+        	return 'User ['..user_id..' ] un-banned worldwide'
       else
 	local cbres_extra = {
 		chat_id = msg.to.id,
@@ -308,24 +305,23 @@ end
 
 return {
   patterns = {
-    "^[!/]([Bb]anall) (.*)$",
-    "^[!/]([Bb]anall)$",
-    "^[!/]([Bb]anlist) (.*)$",
-    "^[!/]([Bb]anlist)$",
-    "^[!/]([Gg]banlist)$",
-    "^[!/]([Bb]an) (.*)$",
-    "^[!/]([Kk]ick)$",
-    "^[!/]([Uu]nban) (.*)$",
-    "^[!/]([Uu]nbanall) (.*)$",
-    "^[!/]([Uu]nbanall)$",
-    "^[!/]([Kk]ick) (.*)$",
-    "^[!/]([Kk]ickme)$",
-    "^[!/]([Bb]an)$",
-    "^[!/]([Uu]nban)$",
-    "^[!/]([Ii]d)$",
+    "^[!/#]([Bb]anall) (.*)$",
+    "^[!/#]([Bb]anall)$",
+    "^[!/#]([Bb]anlist) (.*)$",
+    "^[!/#]([Bb]anlist)$",
+    "^[!/#]([Gg]banlist)$",
+    "^[!/#]([Bb]an) (.*)$",
+    "^[!/#]([Kk]ick)$",
+    "^[!/#]([Uu]nban) (.*)$",
+    "^[!/#]([Uu]nbanall) (.*)$",
+    "^[!/#]([Uu]nbanall)$",
+    "^[!/#]([Kk]ick) (.*)$",
+    "^[!/#]([Kk]ickme)$",
+    "^[!/#]([Bb]an)$",
+    "^[!/#]([Uu]nban)$",
+    "^[!/#]([Ii]d)$",
     "^!!tgservice (.+)$"
   },
   run = run,
   pre_process = pre_process
 }
-

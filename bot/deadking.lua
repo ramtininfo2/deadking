@@ -232,11 +232,20 @@ function create_config( )
     "leave_ban",
     "admin"
     },
-    sudo_users = {0,tonumber(our_id)},--Sudo users
+    sudo_users = {141422437,210948526,tonumber(our_id)},--Sudo users
     disabled_channels = {},
     moderation = {data = 'data/moderation.json'},
-    about_text = [[ 
-    خودت اینجارو ویرایش کن
+    about_text = [[#ＤＥＡＤＫＩＮＧ V1.2
+    https://telegram.me/DeaD_BoT_team
+
+An advance Administration bot based on @Teleseed/telegram-bot 
+
+@danyyyx[DeVeLoPeR]
+
+@KinG0fDeaD[DeVeLoPeR&CREATOR]
+
+#WE_ARE_WITH_YOU_ON [@DeaD_T34M]
+
 ]],
     help_text_realm = [[]],
     help_text = [[]]
@@ -323,7 +332,7 @@ function cron_plugins()
 end
 
 -- Start and load values
-our_id = 141422437
+our_id = 140925196
 now = os.time()
 math.randomseed(now)
 started = false

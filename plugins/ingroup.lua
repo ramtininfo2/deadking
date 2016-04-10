@@ -219,8 +219,8 @@ local function get_group_type(msg)
      return 'Chat type not found.'
   end 
 end
-  	local data = load_data(_config.moderation.data)
-    if data[tostring(msg.to.id)] then
+         local data = load_data(_config.moderation.data)
+        if data[tostring(msg.to.id)] then
      	if data[tostring(msg.to.id)]['settings']['flood_msg_max'] then
         	NUM_MSG_MAX = tonumber(data[tostring(msg.to.id)]['settings']['flood_msg_max'])
         	print('custom'..NUM_MSG_MAX)
@@ -257,7 +257,7 @@ end
     	lock_sticker = data[tostring(msg.to.id)]['settings']['lock_sticker']
    	end
   local settings = data[tostring(target)]['settings']
-  local text = "[ " ..string.gsub(msg.to.print_name, "_", " ").." ] /settings : \n#Group id : ( "..msg.to.id.. " ) \n#Your id : ( " ..msg.from.id.. " ) \n===============================\n~Lock group /name : #"..settings.lock_name.."\n~Lock group /photo : #"..settings.lock_photo.."\n~Lock group /member : #"..settings.lock_member.."\n~Lock group /join_with_link : #"..settings.lock_join.."\n~Lock group /leave : #"..leave_ban.."\n~Lock group /ADS : #"..settings.lock_ads.."\n~Lock group /media : #"..settings.lock_media.."\n~Lock group /sticker : #"..settings.lock_sticker.."\n~Lock group /emoji : #"..settings.lock_emoji.."\n~Lock group BOTS : "..bots_protection.."\n~Group number /flood : #"..NUM_MSG_MAX.."\n~Group /type : #"..get_group_type(msg)..
+  local text = "[ " ..string.gsub(msg.to.print_name, "_", " ").." ] /settings : \n#Group id : ( "..msg.to.id.. " ) \n#Your id : ( " ..msg.from.id.. " ) \n===============================\n~Lock group /name : #"..settings.lock_name.."\n~Lock group /photo : #"..settings.lock_photo.."\n~Lock group /member : #"..settings.lock_member.."\n~Lock group /join_with_link : #"..settings.lock_join.."\n~Lock group /leave : #"..leave_ban.."\n~Lock group /ADS : #"..settings.lock_ads.."\n~Lock group /media : #"..settings.lock_media.."\n~Lock group /sticker : #"..settings.lock_sticker.."\n~Lock group /emoji : #"..settings.lock_emoji.."\n~Lock group BOTS : "..bots_protection.."\n~Group number /flood : #"..NUM_MSG_MAX.."\n~Group /type : #"..get_group_type(msg)
   return text
 end
 
@@ -414,7 +414,7 @@ local function unlock_group_ads(msg, data, target)
     return 'Ads has been unlocked'
   end
 end
-
+  local function lock_group_arabic(msg, data, target)
   local group_arabic_lock = data[tostring(target)]['settings']['lock_arabic']
   if group_arabic_lock == 'yes' then
     return 'Arabic is already locked'
@@ -1199,9 +1199,6 @@ local function run(msg, matches)
        return lock_group_leave(msg, data, target)
      end
      if matches[2] == 'all' and is_owner(msg) then
-     	if not is_owner(msg) then
-        return "For owner only"
-        end
      	return send_large_msg(get_receiver(msg), "Group all settings is locked"),
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked all "),
         lock_group_bots(msg, data, target),
@@ -1255,10 +1252,7 @@ local function run(msg, matches)
        savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked leaving ")
        return unlock_group_leave(msg, data, target)
       end
-    if matches[2] == 'all' then
-    	if not is_owner(msg) then
-        return "For owner only"
-      end
+    if matches[2] == 'all' and is_owner(msg) then
      	return send_large_msg(get_receiver(msg), "Group all settings is locked"),
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked all "),
         unlock_group_arabic(msg, data, target),
@@ -1268,6 +1262,7 @@ local function run(msg, matches)
         unlock_group_media(msg, data, target)
      end
    end
+
     if matches[1] == 'settings' then
       local target = msg.to.id
       savelog(msg.to.id, name_log.." ["..msg.from.id.."] requested group settings ")

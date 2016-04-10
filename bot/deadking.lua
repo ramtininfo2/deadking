@@ -209,7 +209,8 @@ function create_config( )
   config = {
     enabled_plugins = {
     "onservice",
-    "antilink",
+    "help",
+    "antads",
     "antimedia",
     "antijoin",
     "antiemoji",
@@ -217,7 +218,7 @@ function create_config( )
     "inrealm",
     "ingroup",
     "inpm",
-    "banhammer",
+    "plugins",
     "stats",
     "anti_spam",
     "owners",

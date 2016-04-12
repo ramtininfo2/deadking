@@ -1162,6 +1162,10 @@ local function run(msg, matches)
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked name ")
         return lock_group_namemod(msg, data, target)
       end
+      if matches[2] == 'emoji' then
+        savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked emoji ")
+        return lock_group_emoji(msg, data, target)
+      end
       if matches[2] == 'ads' then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked ads ")
         return lock_group_ads(msg, data, target)
@@ -1207,7 +1211,8 @@ local function run(msg, matches)
         lock_group_membermod(msg, data, target),
         lock_group_sticker(msg, data, target),
         lock_group_ads(msg, data, target),
-        lock_group_media(msg, data, target)
+        lock_group_media(msg, data, target),
+        lock_group_emoji(msg, data, target)
      end
    end
     if matches[1] == 'unlock' then 
@@ -1219,6 +1224,10 @@ local function run(msg, matches)
       if matches[2] == 'member' then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked member ")
         return unlock_group_membermod(msg, data, target)
+      end
+      if matches[2] == 'emoji' then
+        savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked emoji ")
+        return unlock_group_emoji(msg, data, target)
       end
       if matches[2] == 'ads' then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked ads ")
@@ -1253,13 +1262,14 @@ local function run(msg, matches)
        return unlock_group_leave(msg, data, target)
       end
     if matches[2] == 'all' and is_owner(msg) then
-     	return send_large_msg(get_receiver(msg), "Group all settings is locked"),
+     	return send_large_msg(get_receiver(msg), "Group all settings is unlocked"),
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked all "),
         unlock_group_arabic(msg, data, target),
         unlock_group_leave(msg, data, target),
         unlock_group_membermod(msg, data, target),
         unlock_group_sticker(msg, data, target),
-        unlock_group_media(msg, data, target)
+        unlock_group_media(msg, data, target),
+        unlock_group_emoji(msg, data, target)
      end
    end
 

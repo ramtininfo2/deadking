@@ -56,7 +56,7 @@ do
    local um_hash = 'msgs:'..result.id..':'..extra.chat2		
    user_info_msgs = tonumber(redis:get(um_hash) or 0)		
    text = text..'6-messages sent : '..user_info_msgs..'\n'		
-   text = text..'@UB_CH'		
+   text = text..''		
    send_msg(extra.receiver, text, ok_cb,  true)		
    else		
   	send_msg(extra.receiver, ' Username not found.', ok_cb, false)		
@@ -106,7 +106,7 @@ do
    local um_hash = 'msgs:'..result.id..':'..extra.chat2		
    user_info_msgs = tonumber(redis:get(um_hash) or 0)		
    text = text..'6-messages sent : '..user_info_msgs..'\n'		
-   text = text..'@UB_CH'		
+   text = text..''		
    send_msg(extra.receiver, text, ok_cb,  true)		
    else		
    send_msg(extra.receiver, 'id not found.\nuse : /info @username', ok_cb, false)		
@@ -157,7 +157,7 @@ do
    local um_hash = 'msgs:'..result.from.id..':'..result.to.id		
    user_info_msgs = tonumber(redis:get(um_hash) or 0)		
    text = text..'6-messages sent : '..user_info_msgs..'\n'		
-   text = text..'@UB_CH'		
+   text = text..''		
    send_msg(extra.receiver, text, ok_cb, true)		
  end		
  		
@@ -240,7 +240,7 @@ do
  	 text = text..'Group name : '..msg.to.title..'\n'		
       text = text..'Group ID : '..msg.to.id		
      end		
-     text = text..'\n@UB_CH'		
+     text = text..'\n'		
      return send_msg(receiver, text, ok_cb, true)		
      end		
    end		

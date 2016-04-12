@@ -82,6 +82,7 @@ function check_member_group(cb_extra, success, result)
         set_owner = member_id ,
         settings = {
           set_name = string.gsub(msg.to.print_name, '_', ' '),
+          lock_chat = 'no',
           lock_emoji = 'no',
           lock_join = 'no',
           lock_media = 'no',
@@ -122,6 +123,7 @@ local function check_member_modadd(cb_extra, success, result)
         settings = {
           set_name = string.gsub(msg.to.print_name, '_', ' '),
           lock_ads = 'yes',
+          lock_chat = 'no',
           lock_emoji = 'no',
           lock_join = 'no',
           lock_media = 'no',
@@ -223,12 +225,11 @@ end
         if data[tostring(msg.to.id)] then
      	if data[tostring(msg.to.id)]['settings']['flood_msg_max'] then
         	NUM_MSG_MAX = tonumber(data[tostring(msg.to.id)]['settings']['flood_msg_max'])
-        	print('custom'..NUM_MSG_MAX)
       	else 
         	NUM_MSG_MAX = 4
       	end
     end
-    local bots_protection = "yes"
+    local bots_protection = "Yes"
     if data[tostring(msg.to.id)]['settings']['lock_bots'] then
     	bots_protection = data[tostring(msg.to.id)]['settings']['lock_bots']
    	end
@@ -248,6 +249,10 @@ end
     if data[tostring(msg.to.id)]['settings']['lock_emoji'] then
     	lock_emoji = data[tostring(msg.to.id)]['settings']['lock_emoji']
    	end
+   	local lock_arabic = "no"
+    if data[tostring(msg.to.id)]['settings']['lock_arabic'] then
+    	lock_arabic = data[tostring(msg.to.id)]['settings']['lock_arabic']
+   	end
    	local lock_join = "no"
     if data[tostring(msg.to.id)]['settings']['lock_join'] then
     	lock_join = data[tostring(msg.to.id)]['settings']['lock_join']
@@ -257,7 +262,7 @@ end
     	lock_sticker = data[tostring(msg.to.id)]['settings']['lock_sticker']
    	end
   local settings = data[tostring(target)]['settings']
-  local text = "[ " ..string.gsub(msg.to.print_name, "_", " ").." ] /settings : \n#Group id : ( "..msg.to.id.. " ) \n#Your id : ( " ..msg.from.id.. " ) \n===============================\n~Lock group /name : #"..settings.lock_name.."\n~Lock group /photo : #"..settings.lock_photo.."\n~Lock group /member : #"..settings.lock_member.."\n~Lock group /join_with_link : #"..settings.lock_join.."\n~Lock group /leave : #"..leave_ban.."\n~Lock group /ADS : #"..settings.lock_ads.."\n~Lock group /media : #"..settings.lock_media.."\n~Lock group /sticker : #"..settings.lock_sticker.."\n~Lock group /emoji : #"..settings.lock_emoji.."\n~Lock group BOTS : "..bots_protection.."\n~Group number /flood : #"..NUM_MSG_MAX.."\n~Group /type : #"..get_group_type(msg)
+local text = "[ " ..string.gsub(msg.to.print_name, "_", " ").." ] /settings : \n#Group id : ( "..msg.to.id.. " ) \n#Your id : ( " ..msg.from.id.. " ) \n===============================\n~Lock group /name : #"..settings.lock_name.."\n~Lock group /photo : #"..settings.lock_photo.."\n~Lock group /member : #"..settings.lock_member.."\n~Lock group /join_with_link : #"..settings.lock_join.."\n~Lock group /leave : #"..leave_ban.."\n~Lock group /ADS : #"..settings.lock_ads.."\n~Lock group /arabic : #"..lock_arabic.."\n~Lock group /chat : #"..settings.lock_chat.."\n~Lock group /media : #"..settings.lock_media.."\n~Lock group /sticker : #"..settings.lock_sticker.."\n~Lock group /emoji : #"..settings.lock_emoji.."\n~Lock group BOTS : "..bots_protection.."\n~Group number /flood : #"..NUM_MSG_MAX.."\n~Group /type : #"..get_group_type(msg)
   return text
 end
 
@@ -331,6 +336,33 @@ local function unlock_group_media(msg, data, target)
     data[tostring(target)]['settings']['lock_media'] = 'no'
     save_data(_config.moderation.data, data)
     return 'Media has been unlocked'
+  end
+end
+
+local function lock_group_chat(msg, data, target)
+  if not is_owner(msg) then
+    return "For owner only!"
+  end
+  local group_chat_lock = data[tostring(target)]['settings']['lock_chat']
+  if group_chat_lock == 'yes' then
+    return 'Chat is already locked'
+  else
+    data[tostring(target)]['settings']['lock_chat'] = 'yes'
+    save_data(_config.moderation.data, data)
+    return 'Chat has been locked'
+  end
+end
+local function unlock_group_chat(msg, data, target)
+  if not is_owner(msg) then
+    return "For owner only!"
+  end
+  local group_chat_lock = data[tostring(target)]['settings']['lock_chat']
+  if group_chat_lock == 'no' then
+    return 'Chat is already unlocked'
+  else
+    data[tostring(target)]['settings']['lock_chat'] = 'no'
+    save_data(_config.moderation.data, data)
+    return 'Chat has been unlocked'
   end
 end
 
@@ -826,7 +858,7 @@ end
 
 local function help()
   local help_text = tostring(_config.help_text)
-  return help_text
+  return 
 end
 
 local function cleanmember(cb_extra, success, result)
@@ -966,7 +998,7 @@ local function run(msg, matches)
     end
     if matches[1] == 'chat_del_user' then
       if not msg.service then
-         -- return "Are you trying to troll me?"
+        return ""
       end
       local user = 'user#id'..msg.action.user.id
       local chat = 'chat#id'..msg.to.id
@@ -984,16 +1016,15 @@ local function run(msg, matches)
         local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
         local picprotectionredis = redis:get(picturehash) 
         if picprotectionredis then 
-          if tonumber(picprotectionredis) == 4 and not is_owner(msg) then 
+          if tonumber(picprotectionredis) == 2 and not is_owner(msg) then 
             kick_user(msg.from.id, msg.to.id)
           end
-          if tonumber(picprotectionredis) ==  8 and not is_owner(msg) then 
+          if tonumber(picprotectionredis) == 3 and not is_owner(msg) then 
             ban_user(msg.from.id, msg.to.id)
             local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
             redis:set(picturehash, 0)
           end
         end
-        
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] tried to deleted picture but failed  ")
         chat_set_photo(receiver, settings.set_photo, ok_cb, false)
       elseif group_photo_lock == 'no' then
@@ -1012,10 +1043,10 @@ local function run(msg, matches)
         local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
         local picprotectionredis = redis:get(picturehash) 
         if picprotectionredis then 
-          if tonumber(picprotectionredis) == 4 and not is_owner(msg) then 
+          if tonumber(picprotectionredis) == 2 and not is_owner(msg) then 
             kick_user(msg.from.id, msg.to.id)
           end
-          if tonumber(picprotectionredis) ==  8 and not is_owner(msg) then 
+          if tonumber(picprotectionredis) == 3 and not is_owner(msg) then 
             ban_user(msg.from.id, msg.to.id)
           local picturehash = 'picture:changed:'..msg.to.id..':'..msg.from.id
           redis:set(picturehash, 0)
@@ -1030,7 +1061,7 @@ local function run(msg, matches)
     end
     if matches[1] == 'chat_rename' then
       if not msg.service then
-        return "Are you trying to troll me?"
+        return ""
       end
       local group_name_set = settings.set_name
       local group_name_lock = settings.lock_name
@@ -1042,16 +1073,15 @@ local function run(msg, matches)
           local namehash = 'name:changed:'..msg.to.id..':'..msg.from.id
           local nameprotectionredis = redis:get(namehash) 
           if nameprotectionredis then 
-            if tonumber(nameprotectionredis) == 4 and not is_owner(msg) then 
+            if tonumber(nameprotectionredis) == 2 and not is_owner(msg) then 
               kick_user(msg.from.id, msg.to.id)
             end
-            if tonumber(nameprotectionredis) ==  8 and not is_owner(msg) then 
+            if tonumber(nameprotectionredis) == 3 and not is_owner(msg) then 
               ban_user(msg.from.id, msg.to.id)
               local namehash = 'name:changed:'..msg.to.id..':'..msg.from.id
               redis:set(namehash, 0)
             end
           end
-          
           savelog(msg.to.id, name_log.." ["..msg.from.id.."] tried to change name but failed  ")
           rename_chat(to_rename, group_name_set, ok_cb, false)
         end
@@ -1066,7 +1096,6 @@ local function run(msg, matches)
       local group_name_set = data[tostring(msg.to.id)]['settings']['set_name']
       local to_rename = 'chat#id'..msg.to.id
       rename_chat(to_rename, group_name_set, ok_cb, false)
-      
       savelog(msg.to.id, "Group { "..msg.to.print_name.." }  name changed to [ "..new_name.." ] by "..name_log.." ["..msg.from.id.."]")
     end
     if matches[1] == 'setphoto' and is_momod(msg) then
@@ -1162,6 +1191,11 @@ local function run(msg, matches)
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked name ")
         return lock_group_namemod(msg, data, target)
       end
+      
+      if matches[2] == 'chat' then
+        savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked chat ")
+        return lock_group_chat(msg, data, target)
+      end
       if matches[2] == 'emoji' then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] locked emoji ")
         return lock_group_emoji(msg, data, target)
@@ -1225,6 +1259,10 @@ local function run(msg, matches)
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked member ")
         return unlock_group_membermod(msg, data, target)
       end
+      if matches[2] == 'chat' then
+        savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked chat ")
+        return unlock_group_chat(msg, data, target)
+      end
       if matches[2] == 'emoji' then
         savelog(msg.to.id, name_log.." ["..msg.from.id.."] unlocked emoji ")
         return unlock_group_emoji(msg, data, target)
@@ -1278,18 +1316,6 @@ local function run(msg, matches)
       savelog(msg.to.id, name_log.." ["..msg.from.id.."] requested group settings ")
       return show_group_settingsmod(msg, data, target)
     end	
-
-  --[[if matches[1] == 'public' then
-    local target = msg.to.id
-    if matches[2] == 'yes' then
-      savelog(msg.to.id, name_log.." ["..msg.from.id.."] set group to: public")
-      return set_public_membermod(msg, data, target)
-    end
-    if matches[2] == 'no' then
-      savelog(msg.to.id, name_log.." ["..msg.from.id.."] set group to: not public")
-      return unset_public_membermod(msg, data, target)
-    end
-  end]]
 
     if matches[1] == 'newlink' and not is_realm(msg) then
       if not is_momod(msg) then

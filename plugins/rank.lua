@@ -1,5 +1,7 @@
 do		
  local Executive1 = 140925196
+ local Executive2 =
+ local Executive3 =
  
  local function setrank(msg, name, value) -- setrank function		
    local hash = nil		
